@@ -1,40 +1,59 @@
-from fastapi import FastAPI
-from contextlib import asynccontextmanager
 import joblib
-from app.routers import predict # Importas tus rutas, añadir más a posterior
+from contextlib import asynccontextmanager
 from pathlib import Path
+from fastapi import FastAPI
 
-# Configuración de rutas
+# Base de datos e Infraestructura
+from database import init_databases, close_databases, engine
+from sqlmodel import SQLModel
+import models  # Asegúrate de importar tus modelos para que SQLModel los registre
+
+# Importación de rutas
+from routers import predict 
+
+# Configuración de rutas de archivos
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-RUTA_MODELO = BASE_DIR / "models" / "modelo_alto_recall_dani.pkl" # direccion del pickle del modelo entrenado
-#RUTA_PARQUET = BASE_DIR / "data" / "processed" / "data_idname.parquet"
+RUTA_MODELO = BASE_DIR / "models" / "modelo_alto_recall_dani2.pkl" 
 
-#lifespan para cargar modelo y cerrar recursos ( vive en RAM mientras la app esté corriendo, se carga al iniciar y se limpia al cerrar)
+# --- LIFESPAN (Ciclo de vida de la aplicación) ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    #Startup buscamos y cargamos modelo
+    # 1. Inicializamos las conexiones (PostgreSQL y Valkey)
+    print("Inicializando pools de conexiones a las bases de datos...")
+    await init_databases()
+
+    # 2. Creamos las tablas en PostgreSQL si no existen (Lógica de SQLModel)
+    print("Verificando y creando tablas en PostgreSQL...")
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+
+    # 3. Validamos y cargamos el modelo de Machine Learning en RAM
     if not RUTA_MODELO.exists():
         raise FileNotFoundError(f"No se encontró el modelo en: {RUTA_MODELO}")
         
-    print("Cargando modelo en app.state...")
-    # Guardamos el modelo en el estado de la aplicación
+    print("Cargando modelo de predicción en app.state...")
     app.state.model = joblib.load(RUTA_MODELO)
     
-    yield # UP
+    yield  # --- LA API QUEDA OPERATIVA Y CORRIENDO ---
 
-    # Apagamos y limpiamos recursos
-    print("Limpiando recursos...")
-    # Eliminamos la referencia del estado
+    # --- SHUTDOWN (Limpieza de recursos al apagar el servidor) ---
+    print("Limpiando recursos y cerrando conexiones...")
     app.state.model = None
+    await close_databases()  # Cierra pools de Valkey y del engine de Postgres de forma limpia
+    print("Servidor apagado correctamente.")
 
-app = FastAPI(lifespan=lifespan)
+
+# --- INICIALIZACIÓN DE FASTAPI ---
+app = FastAPI(
+    title="NovaPay Fraud Detection API",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 @app.get("/")
 def read_root():
     return {"message": "API de NovaPay funcionando"}
 
-#routers
-#predict
+# --- REGISTRO DE ROUTERS ---
+# Incluimos las rutas de predicción bajo el prefijo /predict
 app.include_router(predict.router, prefix="/predict", tags=["Predicciones"])
-#ingesta
-#eliminación
