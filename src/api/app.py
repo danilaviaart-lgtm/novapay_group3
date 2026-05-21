@@ -6,7 +6,6 @@ from fastapi import FastAPI
 # Base de datos e Infraestructura
 from database import init_databases, close_databases, engine
 from sqlmodel import SQLModel
-import models  # Asegúrate de importar tus modelos para que SQLModel los registre
 
 # Importación de rutas
 from routers import predict 
