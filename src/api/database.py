@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 # 1. CADENAS DE CONEXIÓN REALES
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:pX9$mK2!vL7_qZ4w@192.168.0.20:7432/proyecto_novapay")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:pX9$mK2!vL7_qZ4w@192.168.0.20:7432/postgres")
 VALKEY_URL = os.getenv("VALKEY_URL", "redis://192.168.0.20:6379")
 
 # 2. LOS ENGINES / CLIENTES (Objetos físicos de conexión)

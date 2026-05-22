@@ -9,6 +9,7 @@ from sqlmodel import SQLModel
 
 # Importación de rutas
 from routers import predict
+from routers import predictvit
 
 # Configuración de rutas de archivos
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -56,3 +57,4 @@ def read_root():
 # --- REGISTRO DE ROUTERS ---
 # Incluimos las rutas de predicción bajo el prefijo /predict
 app.include_router(predict.router, prefix="/predict", tags=["Predicciones"])
+app.include_router(predictvit.router, prefix="/predictvit", tags=["Predicciones VIT"])

@@ -4,7 +4,7 @@ class PredictionInput(BaseModel):
     #campos del modelo
     id_transaccion: UUID4
     id_usuario: UUID4
-    hora: int
+    #hora: int
     #dias_antiguedad_cuenta: int
     #email_verificado: int
     #pais_emision: str
@@ -28,7 +28,7 @@ class PredictionInput(BaseModel):
             #"dias_antiguedad_cuenta": 9,
             #"email_verificado": 0,
             "es_online": 1,
-            "hora": 14,
+            #"hora": 14,
             "importe": 20.5,
             "minutos_desde_ultima_tx": 1,
             "mismo_envio_facturacion": 1,
