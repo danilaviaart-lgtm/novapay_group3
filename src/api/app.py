@@ -8,11 +8,11 @@ from database import init_databases, close_databases, engine
 from sqlmodel import SQLModel
 
 # Importación de rutas
-from routers import predict 
+from routers import predict
 
 # Configuración de rutas de archivos
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-RUTA_MODELO = BASE_DIR / "models" / "modelo_alto_recall_dani2.pkl" 
+RUTA_MODELO = BASE_DIR / "models" / "modelo_fraude_v1.pkl" 
 
 # --- LIFESPAN (Ciclo de vida de la aplicación) ---
 @asynccontextmanager

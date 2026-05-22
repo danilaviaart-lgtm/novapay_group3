@@ -25,7 +25,7 @@ async def get_prediction(
         # 3. Extraemos los IDs para la lógica de validación y negocio
         id_usuario = data_dict.pop("id_usuario", None)
         id_transaccion = data_dict.pop("id_transaccion", None)
-        
+        print("TIPO DE OBJETO CARGADO:", type(model))
 
         # === VALIDACIÓN Y CONTROL DE FLUJO CON VALKEY ===
         if id_usuario is not None:
