@@ -9,12 +9,15 @@ def feature_engineering(df_in, paises_alto_riesgo=None, categorias_alto_riesgo=N
 
     df = df_in.copy()
 
+    # Descartar IDs si vienen en el input (no son features)
+    df = df.drop(columns=['id_transaccion', 'id_usuario'], errors='ignore')
+
     # Idempotencia: si el FE ya fue aplicado, devolver tal cual
     if {'dia_semana', 'pais_alto_riesgo'}.issubset(df.columns):
         return df
 
     required = {
-        'fecha', 'pais_pago', 'pais_emision', 'hora',
+        'fecha', 'pais_pago', 'pais_emision',
         'categoria', 'es_online', 'paso_3d_secure',
     }
     faltantes = required - set(df.columns)
@@ -26,8 +29,9 @@ def feature_engineering(df_in, paises_alto_riesgo=None, categorias_alto_riesgo=N
     paises_alto_riesgo = tuple(paises_alto_riesgo) if paises_alto_riesgo else ()
     categorias_alto_riesgo = tuple(categorias_alto_riesgo) if categorias_alto_riesgo else ()
 
-    # Fecha
+    # Fecha — deriva 'hora' antes de cualquier uso
     df['fecha'] = pd.to_datetime(df['fecha'])
+    df['hora'] = df['fecha'].dt.hour
     df['dia_semana'] = df['fecha'].dt.dayofweek
     df['es_fin_de_semana'] = (df['dia_semana'] >= 5).astype(int)
     df['mes'] = df['fecha'].dt.month
