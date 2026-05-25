@@ -9,7 +9,7 @@ from routers.schemas import PredictionInput
 
 router = APIRouter()
 
-@router.post("/predict")
+@router.post("/o")
 async def get_prediction(
     request: Request, 
     data: PredictionInput, 
