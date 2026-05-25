@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Transacción {{ t.id_transaccion | string | truncate(12, True, '…') }}{% endblock %}
+
+{% block content %}
+<a href="/dashboard/" class="btn btn-sm btn-outline-secondary mb-3">
+    <i class="bi bi-arrow-left me-1"></i>Volver
+</a>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="h3 mb-1">
+            <i class="bi bi-receipt me-2"></i>Detalle de Transacción
+        </h1>
+        <code class="text-muted">{{ t.id_transaccion }}</code>
+    </div>
+    <div class="text-end">
+        {% if t.es_fraude %}
+        <span class="badge bg-danger fs-6 me-2"><i class="bi bi-exclamation-triangle me-1"></i>Fraude Detectado</span>
+        {% else %}
+        <span class="badge bg-success fs-6 me-2"><i class="bi bi-check-circle me-1"></i>Legítima</span>
+        {% endif %}
+        {% if t.revisar %}
+        <span class="badge bg-warning text-dark fs-6"><i class="bi bi-eye me-1"></i>Requiere Revisión</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card border-secondary h-100">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-1"></i>Información General
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">ID Transacción</dt>
+                    <dd class="col-sm-7"><code>{{ t.id_transaccion }}</code></dd>
+
+                    <dt class="col-sm-5">ID Usuario</dt>
+                    <dd class="col-sm-7">
+                        <a href="/dashboard/cliente/{{ t.id_usuario }}" class="text-warning text-decoration-none">
+                            <code>{{ t.id_usuario }}</code> <i class="bi bi-box-arrow-up-right small"></i>
+                        </a>
+                    </dd>
+
+                    <dt class="col-sm-5">Fecha</dt>
+                    <dd class="col-sm-7">{{ t.fecha | default('—', true) }}</dd>
+
+                    <dt class="col-sm-5">Hora</dt>
+                    <dd class="col-sm-7">{{ '%02d:00' | format(t.hora) if t.hora is not none else '—' }}</dd>
+
+                    <dt class="col-sm-5">Importe</dt>
+                    <dd class="col-sm-7 fw-bold">{{ '%.2f' | format(t.importe | float) }} €</dd>
+
+                    <dt class="col-sm-5">Categoría</dt>
+                    <dd class="col-sm-7">{{ t.categoria | default('—', true) }}</dd>
+
+                    <dt class="col-sm-5">Online</dt>
+                    <dd class="col-sm-7">{% if t.es_online %}<i class="bi bi-check-circle-fill text-info"></i> Sí{% else %}<i class="bi bi-x-circle-fill text-muted"></i> No{% endif %}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-secondary h-100">
+            <div class="card-header">
+                <i class="bi bi-credit-card me-1"></i>Medio de Pago
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">Tarjeta</dt>
+                    <dd class="col-sm-6">{{ t.tipo_tarjeta | default('—', true) }}</dd>
+
+                    <dt class="col-sm-6">País pago</dt>
+                    <dd class="col-sm-6">{{ t.pais_pago | default('—', true) }}</dd>
+
+                    <dt class="col-sm-6">3D Secure</dt>
+                    <dd class="col-sm-6">{% if t.paso_3d_secure %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}</dd>
+
+                    <dt class="col-sm-6">Misma dirección</dt>
+                    <dd class="col-sm-6">{% if t.mismo_envio_facturacion is not none %}{% if t.mismo_envio_facturacion %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}{% else %}—{% endif %}</dd>
+
+                    <dt class="col-sm-6">VPN/Proxy</dt>
+                    <dd class="col-sm-6">{% if t.uso_vpn_proxy is not none %}{% if t.uso_vpn_proxy %}<span class="badge bg-danger">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}{% else %}—{% endif %}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-secondary h-100">
+            <div class="card-header">
+                <i class="bi bi-shield me-1"></i>Evaluación de Fraude
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="display-4 fw-bold {% if t.f_score is not none and t.f_score | float >= 0.7 %}text-danger{% elif t.f_score is not none and t.f_score | float >= 0.4 %}text-warning{% else %}text-success{% endif %}">
+                        {% if t.f_score is not none %}
+                        {{ '%.0f' | format(t.f_score | float * 100) }}%
+                        {% else %}
+                        —
+                        {% endif %}
+                    </div>
+                    <div class="small text-muted">Fraud Score</div>
+                </div>
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-6">Revisar</dt>
+                    <dd class="col-sm-6">{% if t.revisar %}<span class="badge bg-warning text-dark">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</dd>
+
+                    <dt class="col-sm-6">Revisado</dt>
+                    <dd class="col-sm-6">{{ t.revisado | default('pendiente', true) }}</dd>
+
+                    <dt class="col-sm-6">Tipo fraude</dt>
+                    <dd class="col-sm-6">{{ t.tipo_fraude | default('—', true) }}</dd>
+
+                    <dt class="col-sm-6">Auditoría</dt>
+                    <dd class="col-sm-6">{% if t.auditor_fraude is not none %}{% if t.auditor_fraude %}<span class="badge bg-danger">Sí</span>{% else %}<span class="badge bg-success">No</span>{% endif %}{% else %}—{% endif %}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-secondary">
+            <div class="card-header">
+                <i class="bi bi-person me-1"></i>Perfil del Cliente
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Antigüedad cuenta</dt>
+                    <dd class="col-sm-7">{{ t.dias_antiguedad_cuenta }} días</dd>
+
+                    <dt class="col-sm-5">Email verificado</dt>
+                    <dd class="col-sm-7">{% if t.email_verificado %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}</dd>
+
+                    <dt class="col-sm-5">País emisión</dt>
+                    <dd class="col-sm-7">{{ t.pais_emision }}</dd>
+
+                    <dt class="col-sm-5">Dispositivo</dt>
+                    <dd class="col-sm-7">{{ t.tipo_dispositivo | default('—', true) }}</dd>
+
+                    <dt class="col-sm-5">Min. desde última TX</dt>
+                    <dd class="col-sm-7">{{ t.minutos_desde_ultima_tx | default('—', true) }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-secondary">
+            <div class="card-header">
+                <i class="bi bi-bar-chart me-1"></i>SHAP - Factores de Riesgo
+            </div>
+            <div class="card-body">
+                {% if t.shap_reasons %}
+                <div class="mb-3">
+                    <h6 class="text-danger small"><i class="bi bi-arrow-up-circle me-1"></i>Aumentan riesgo</h6>
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for r in t.shap_reasons[:5] %}
+                        <span class="badge bg-danger">{{ r | string | truncate(40) }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div>
+                    <h6 class="text-success small"><i class="bi bi-arrow-down-circle me-1"></i>Disminuyen riesgo</h6>
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for r in t.shap_reasons[5:10] %}
+                        <span class="badge bg-success">{{ r | string | truncate(40) }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0"><i class="bi bi-info-circle me-1"></i>No hay datos SHAP disponibles para esta transacción.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

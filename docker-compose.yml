@@ -1,0 +1,19 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/src/api
+    environment:
+      - PYTHONPATH=/workspace:/workspace/src/api
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload --forwarded-allow-ips=*
+    # 👇 1. Añades la red al servicio aquí
+    networks:
+      - red_compartida
+
+networks:
+  red_compartida:
+    external: true
+    name: red_navipay

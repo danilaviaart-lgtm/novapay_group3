@@ -1,9 +1,8 @@
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import UUID4
-from sqlmodel import SQLModel, Field
-from sqlalchemy import Column, String, Integer, Boolean, Numeric
-from sqlalchemy.dialects.postgresql import UUID
+from sqlmodel import SQLModel, Field, JSON
+from sqlalchemy import Column, Integer
 
 class Cliente(SQLModel, table=True):
     __tablename__: str = "clientes"
@@ -53,3 +52,9 @@ class Transaccion(SQLModel, table=True):
     revisar: bool = Field(default=False)
     revisado: Optional[str] = Field(default=None)
     tipo_fraude: Optional[str] = Field(default=None)
+
+    # ------------------------------------------------------------------------
+    # NUEVA COLUMNA REAL: Mapeada como tipo JSON en la base de datos.
+    # SQLModel se encargará de serializar la lista de Python a JSONB en Postgres.
+    # ------------------------------------------------------------------------
+    shap_reasons: Optional[List[Dict[str, Any]]] = Field(default=None, sa_column=Column(JSON))

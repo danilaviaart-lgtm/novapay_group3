@@ -3,26 +3,26 @@ import redis.asyncio as aioredis
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-# 1. CADENAS DE CONEXIÓN REALES
+
+# CONEXIONES Y CONFIGURACIONES DE BASE DE DATOS
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:pX9$mK2!vL7_qZ4w@192.168.0.20:7432/postgres")
 VALKEY_URL = os.getenv("VALKEY_URL", "redis://192.168.0.20:6379")
 
-# 2. LOS ENGINES / CLIENTES (Objetos físicos de conexión)
+# ENGINE POSTGRESQL ASÍNCRONO
 engine = create_async_engine(DATABASE_URL, echo=True)
 
-# Dejamos el cliente de Valkey listo como None; se instanciará en el lifespan de la app
+# CLIENTE VALKEY
 valkey_client: aioredis.Redis | None = None
 
 
-# 3. EL CREADOR DE SESIONES POSTGRES
+# SESIÓN BD POSTGRES
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False
 )
 
-
-# 4. LAS DEPENDENCIAS PARA TUS ENDPOINTS (Lo que hereda predict.py)
+# CONEXIÓN Y CIERRE POSTGRES
 async def get_db():
     """Entrega una conexión activa a Postgres y se asegura de cerrarla al terminar."""
     async with AsyncSessionLocal() as session:
@@ -31,6 +31,7 @@ async def get_db():
         finally:
             await session.close()  
 
+#CONEXIÓN VALKEY
 def get_valkey() -> aioredis.Redis:
     """Entrega la instancia activa y conectada de Valkey."""
     if valkey_client is None:
@@ -38,7 +39,7 @@ def get_valkey() -> aioredis.Redis:
     return valkey_client
 
 
-# 5. FUNCIONES DE CONTROL DE CICLO DE VIDA (Para tu archivo main.py)
+#CONTROL VALKEY INICIO
 async def init_databases():
     """Inicializa los pools de conexiones y verifica la conectividad al arrancar la app."""
     global valkey_client
@@ -46,7 +47,8 @@ async def init_databases():
     valkey_client = aioredis.from_url(VALKEY_URL, decode_responses=True)
     # Hacemos un ping rápido para asegurar que Valkey está arriba
     await valkey_client.ping()
-
+    
+#CONTROL VALKEY CIERRE
 async def close_databases():
     """Cierra todos los pools de conexiones limpiamente al apagar el servidor."""
     global valkey_client
