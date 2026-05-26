@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 from fastapi.security import OAuth2PasswordBearer 
-from sqlmodel import select
+from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import List, Optional
 from sqlalchemy import or_
 import uuid
 
-from database import engine 
+from database import engine
 from m_transacciones import Transaccion, TransaccionResponse, TransaccionUpdate
 from security import verificar_access_token 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +17,22 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 async def obtener_analista_actual(token: str = Depends(oauth2_scheme)) -> dict:
     return verificar_access_token(token)
+
+
+@router.get("/stats/dashboard", status_code=status.HTTP_200_OK)
+async def obtener_stats_dashboard():
+    async with AsyncSession(engine) as session:
+        total = (await session.execute(select(func.count(Transaccion.id_transaccion)))).scalar() or 0
+        fraud = (await session.execute(select(func.count(Transaccion.id_transaccion)).where(Transaccion.es_fraude == True))).scalar() or 0
+        pending = (await session.execute(
+            select(func.count(Transaccion.id_transaccion)).where(
+                Transaccion.es_fraude == False,
+                Transaccion.f_score.isnot(None),
+                Transaccion.f_score > 0.3,
+            )
+        )).scalar() or 0
+        clean = total - fraud - pending
+        return {"total": total, "fraud": fraud, "pending": pending, "clean": clean}
 
 
 @router.get("/", response_model=List[TransaccionResponse], status_code=status.HTTP_200_OK)
