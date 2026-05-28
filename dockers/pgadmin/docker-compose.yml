@@ -1,0 +1,29 @@
+services:
+  postgres_db:
+    image: postgres:15 # Usamos la versión 15 por estabilidad
+    container_name: db_postgres_app
+    restart: always
+    environment:
+      POSTGRES_USER: thebridge
+      POSTGRES_PASSWORD: base_prueba3
+      POSTGRES_DB: db_postgres_back
+    ports:
+      - "7434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin_container
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: thebridge@test.com # Formato de email obligatorio para que no falle
+      PGADMIN_DEFAULT_PASSWORD: arielalamejor
+    ports:
+      - "5051:80" # Puerto 5051 para evitar bloqueos en ZimaOS
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  postgres_data:
+  pgadmin_data:

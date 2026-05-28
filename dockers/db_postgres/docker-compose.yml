@@ -1,0 +1,16 @@
+services:
+  postgres_db:
+    image: postgres:15  # Usamos la versión 15 por estabilidad
+    container_name: db_postgres_app
+    restart: always
+    environment:
+      POSTGRES_USER: thebridge
+      POSTGRES_PASSWORD: base_prueba3
+      POSTGRES_DB: db_postgres_back
+    ports:
+      - "7434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
