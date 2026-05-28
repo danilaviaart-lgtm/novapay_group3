@@ -34,7 +34,7 @@ class TransaccionBase(SQLModel):
 
     f_score: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(5, 2)))
     auditor_fraude: Optional[bool] = Field(default=None)
-    shap_reasons: Optional[List[Dict[str, Any]]] = Field(default=None, sa_column=Column(JSON))
+    shap_reasons: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
 
 # MODELO DE TABLA (Base de Datos)
 class Transaccion(TransaccionBase, table=True):
@@ -81,6 +81,7 @@ class TransaccionResponse(SQLModel):
     tipo_dispositivo: Optional[str] = None
     uso_vpn_proxy: Optional[bool] = None
     paso_3d_secure: Optional[bool] = None
+    shap_reasons: Optional[Dict[str, Any]] = None
 
 
 # MODELO UPDATE (para ediciones parciales)

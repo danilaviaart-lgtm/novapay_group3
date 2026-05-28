@@ -57,4 +57,4 @@ class Transaccion(SQLModel, table=True):
     # NUEVA COLUMNA REAL: Mapeada como tipo JSON en la base de datos.
     # SQLModel se encargará de serializar la lista de Python a JSONB en Postgres.
     # ------------------------------------------------------------------------
-    shap_reasons: Optional[List[Dict[str, Any]]] = Field(default=None, sa_column=Column(JSON))
+    shap_reasons: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))

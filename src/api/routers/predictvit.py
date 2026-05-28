@@ -10,7 +10,7 @@ from helpers import preparar_para_postgres
 from routers.schemas import PredictionInput
 
 # IMPORTAMOS LA FUNCIÓN DE INFERENCIA Y EXPLICACIÓN DE TU SHAP_EXPLAINER
-from utils.shap_explainer import predict_and_explain
+from utils.shap_explainer import predict_and_explain, get_explainer, generar_resumen
 
 router = APIRouter()
 
@@ -136,7 +136,11 @@ async def get_prediction(
             "revisado": "Pendiente" if (0.30 <= resultado_ml['probabilidad_fraude'] <= 0.50) else "No requerido",
             
             # Unimos las razones positivas (incrementa riesgo) y negativas (reduce riesgo) en una sola lista JSON
-            "shap_reasons": resultado_ml['razones_fraude'] + resultado_ml['razones_legitima']
+            "shap_reasons": generar_resumen(
+        resultado_ml['razones_fraude'], 
+        resultado_ml['razones_legitima'], 
+        resultado_ml['probabilidad_fraude']
+    )
         }
         
         # 6. VARIABLE LIMPIA DATOS NUMPY PREDICT Y PERSISTENCIA REAL
